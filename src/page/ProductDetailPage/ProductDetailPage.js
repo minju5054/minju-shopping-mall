@@ -10,26 +10,40 @@ import { addToCart } from "../../features/cart/cartSlice";
 
 const ProductDetail = () => {
   const dispatch = useDispatch();
-  const { selectedProduct, loading } = useSelector((state) => state.product);
+  // const { selectedProduct, loading } = useSelector((state) => state.product);
+  const selectedProduct = useSelector((state) => state.product.selectedProduct);
+  const loading = useSelector((state) => state.product.loading);
   const [size, setSize] = useState("");
   const { id } = useParams();
   const [sizeError, setSizeError] = useState(false);
   const user = useSelector((state) => state.user.user);
   const navigate = useNavigate();
 
-  const addItemToCart = () => {
-    //사이즈를 아직 선택안했다면 에러
-    // 아직 로그인을 안한유저라면 로그인페이지로
-    // 카트에 아이템 추가하기
-  };
-  const selectSize = (value) => {
-    // 사이즈 추가하기
-  };
 
   useEffect(() => {
     dispatch(getProductDetail(id));
   }, [id, dispatch]);
 
+  const addItemToCart = () => {
+    //사이즈를 아직 선택안했다면 에러
+    if(size === ""){
+      setSizeError(true);
+      return;
+    }
+    setSizeError(false);
+    // 아직 로그인을 안한유저라면 로그인페이지로
+    if(!user) navigate("/login");
+    // 카트에 아이템 추가하기
+    dispatch(addToCart({id, size}));
+  };
+  
+  const selectSize = (value) => {
+    // 사이즈 추가하기
+    if(sizeError) setSizeError(false);
+    setSize(value);
+  };
+
+  
   if (loading || !selectedProduct)
     return (
       <ColorRing
@@ -64,7 +78,7 @@ const ProductDetail = () => {
             <Dropdown.Toggle
               className="size-drop-down"
               variant={sizeError ? "outline-danger" : "outline-dark"}
-              id="dropdown-basic"
+              id ="dropdown-basic"
               align="start"
             >
               {size === "" ? "사이즈 선택" : size.toUpperCase()}

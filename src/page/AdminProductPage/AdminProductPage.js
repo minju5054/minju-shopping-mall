@@ -37,30 +37,52 @@ const AdminProductPage = () => {
   ];
 
   //상품리스트 가져오기 (url쿼리 맞춰서)
+  // 사이트 들어가자마자이므로 useEffect
+  useEffect(() => {
+    dispatch(getProductList({...searchQuery}));
+  },[query]);
 
   useEffect(() => {
     //검색어나 페이지가 바뀌면 url바꿔주기 (검색어또는 페이지가 바뀜 => url 바꿔줌=> url쿼리 읽어옴=> 이 쿼리값 맞춰서  상품리스트 가져오기)
-  }, [searchQuery]);
+    if(searchQuery.name === ""){    // 검색어에 내용이 없을 때
+      delete searchQuery.name;
+    }
+    console.log("qqq", searchQuery);
+    const params = new URLSearchParams(searchQuery);  // &name="" 형태
+    const queryString = params.toString();
+    navigate("?" + queryString);
+  }, [searchQuery]);    // searchQuery가 업데이트 되면은 실행
 
   const deleteItem = (id) => {
-    //아이템 삭제하가ㅣ
+    //아이템 삭제하기
+    dispatch(deleteProduct(id));
   };
 
   const openEditForm = (product) => {
     //edit모드로 설정하고
+    setMode("edit");
     // 아이템 수정다이얼로그 열어주기
+    dispatch(setSelectedProduct(product)); // 데이터가 채워진 상태로 보여줌
+    setShowDialog(true);
   };
 
   const handleClickNewItem = () => {
     //new 모드로 설정하고
+    setMode("new");
     // 다이얼로그 열어주기
+    setShowDialog(true);
   };
 
   const handlePageClick = ({ selected }) => {
     //  쿼리에 페이지값 바꿔주기
+    setSearchQuery({...searchQuery, page: selected + 1});
+
   };
 
-  return (
+  // searchbox에서 검색어를 읽어온다 => 엔터를 치면 => searchQuery객체가 업데이트 됨 {name:스트레이트 팬츠}
+  // => searchQuery객체 안에 아이템 기준으로 url을 새로 생성해서 호출 &name=스트레이트+팬츠 
+  // => url쿼리 읽어오기 => url쿼리 기준으로 BE에 검색조건과 함께 호출
+  return (  
     <div className="locate-center">
       <Container>
         <div className="mt-2">
@@ -77,7 +99,7 @@ const AdminProductPage = () => {
 
         <ProductTable
           header={tableHeader}
-          data=""
+          data={productList}
           deleteItem={deleteItem}
           openEditForm={openEditForm}
         />
@@ -85,8 +107,8 @@ const AdminProductPage = () => {
           nextLabel="next >"
           onPageChange={handlePageClick}
           pageRangeDisplayed={5}
-          pageCount={100}
-          forcePage={searchQuery.page - 1}
+          pageCount={totalPageNum}     // 전체페이지
+          forcePage={searchQuery.page - 1}   // 1페이지이면 2임 여긴 한개씩 +1 해야함
           previousLabel="< previous"
           renderOnZeroPageCount={null}
           pageClassName="page-item"

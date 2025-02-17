@@ -10,7 +10,7 @@ import {
   editProduct,
 } from "../../../features/product/productSlice";
 
-const InitialFormData = {
+const InitialFormData = {  // 기본 폼 데이터 구조 정의 
   name: "",
   sku: "",
   stock: {},
@@ -22,24 +22,42 @@ const InitialFormData = {
 };
 
 const NewItemDialog = ({ mode, showDialog, setShowDialog }) => {
-  const { error, success, selectedProduct } = useSelector(
-    (state) => state.product
-  );
+  // const { error, success, selectedProduct } = useSelector(
+  //   (state) => state.product
+  // );
+  // 초기 데이터 가져오기(useSelector)
+  const selectedProduct = useSelector((state) => state.product.selectedProduct);  
+  const {error, success} = useSelector((state) => state.product)
+
+  // 폼 데이터 관리(useState)
   const [formData, setFormData] = useState(
     mode === "new" ? { ...InitialFormData } : selectedProduct
   );
   const [stock, setStock] = useState([]);
   const dispatch = useDispatch();
-  const [stockError, setStockError] = useState(false);
+  const [stockError, setStockError] = useState(false);  // 재고 없으면 에러 
+  console.log("stock", stock);
 
-  useEffect(() => {
-    if (success) setShowDialog(false);
+  // success 상태 감지하여 모달 닫음 
+  useEffect(() => {  
+    if (success) {
+      setShowDialog(false);
+      setFormData({...InitialFormData});
+      setStock([]);
+    }
   }, [success]);
 
   useEffect(() => {
-    if (error || !success) {
+    if(error){
       dispatch(clearError());
     }
+  }, [error]);
+
+  // 모달이 열릴 때 데이터 초기화 
+  useEffect(() => { 
+    // if (error || !success) {
+    //   dispatch(clearError());
+    // }
     if (showDialog) {
       if (mode === "edit") {
         setFormData(selectedProduct);
@@ -59,41 +77,69 @@ const NewItemDialog = ({ mode, showDialog, setShowDialog }) => {
   const handleClose = () => {
     //모든걸 초기화시키고;
     // 다이얼로그 닫아주기
+    setShowDialog(false);
+    setFormData({...InitialFormData});
+    setStock([]);
+    setStockError(false);
   };
-
+  
   const handleSubmit = (event) => {
     event.preventDefault();
+    console.log("formdata", formData);  // stock이 비어있음 
+    console.log("formdata", stock);   // 여기에는 stock이 있음
+    
     //재고를 입력했는지 확인, 아니면 에러
+    if(stock.length === 0) return setStockError(true);
+    
     // 재고를 배열에서 객체로 바꿔주기
-    // [['M',2]] 에서 {M:2}로
+    // [["s","3"]["m","4"]]; => {s:3, m:4}로 객체타입으로 변환
+    const totalStock = stock.reduce((total, item) => {
+      return {...total, [item[0]]:parseInt(item[1])}
+    }, {});
+    console.log("formdata", totalStock);
+  
     if (mode === "new") {
       //새 상품 만들기
+      dispatch(createProduct({...formData, stock: totalStock}));
     } else {
       // 상품 수정하기
+      dispatch(editProduct({...formData, stock: totalStock, id: selectedProduct._id}));
     }
   };
-
+  // 폼 필드의 변경사항을 상태에 반영 
   const handleChange = (event) => {
     //form에 데이터 넣어주기
+    const {id, value} = event.target;
+    setFormData({...formData, [id]: value});
   };
 
   const addStock = () => {
     //재고타입 추가시 배열에 새 배열 추가
+    setStock([...stock, []]);
   };
 
   const deleteStock = (idx) => {
     //재고 삭제하기
+    const newStock = stock.filter((item, index) => index !== idx);
+    setStock(newStock);
   };
 
   const handleSizeChange = (value, index) => {
     //  재고 사이즈 변환하기
+    const newStock = [...stock];
+    newStock[index][0] = value; // 0번째는 'S','M'을 가리킴
+    setStock(newStock);
   };
 
   const handleStockChange = (value, index) => {
     //재고 수량 변환하기
+    const newStock = [...stock];
+    newStock[index][1] = value > 0 ? value : 0;  // 1번째는 수량을 가리킴
+    setStock(newStock);
   };
 
   const onHandleCategory = (event) => {
+    // 카테고리가 이미 추가되어 있으면 제거
     if (formData.category.includes(event.target.value)) {
       const newCategory = formData.category.filter(
         (item) => item !== event.target.value
@@ -103,6 +149,7 @@ const NewItemDialog = ({ mode, showDialog, setShowDialog }) => {
         category: [...newCategory],
       });
     } else {
+      // 아니면 새로 추가
       setFormData({
         ...formData,
         category: [...formData.category, event.target.value],
@@ -112,6 +159,7 @@ const NewItemDialog = ({ mode, showDialog, setShowDialog }) => {
 
   const uploadImage = (url) => {
     //이미지 업로드
+    setFormData({...formData, image: url});
   };
 
   return (
@@ -236,7 +284,7 @@ const NewItemDialog = ({ mode, showDialog, setShowDialog }) => {
             src={formData.image}
             className="upload-image mt-2"
             alt="uploadedimage"
-          ></img>
+          />
         </Form.Group>
 
         <Row className="mb-3">
