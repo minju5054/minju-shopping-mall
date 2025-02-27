@@ -17,14 +17,18 @@ const LandingPage = () => {
     if (![...query.keys()].length) {
       setQuery({}, {replace: true});
     }
-  }, []);
+  }, [query]);
 
   // 이벤트 팝업 상태 관리 
   const [showDiscountPopup, setShowDiscountPopup] = useState(true);
   const [showFWPopup, setshowFWPopup] = useState(true);
 
   // 검색 및 필터링 상태 관리 
-  const [searchQuery, setSearchQuery] = useState({});
+  const [searchQuery, setSearchQuery] = useState({
+    name: query.get("name") || "",
+      minPrice: query.get("minPrice") || "",
+      maxPrice: query.get("maxPrice") || "",
+  });
 
   useEffect(() => {
     setSearchQuery({
@@ -36,14 +40,14 @@ const LandingPage = () => {
 
   // 상품 리스트 불러오기 
   useEffect(() => {
-    dispatch(
-      getProductList({
-        name: query.get("name") || "",
-        minPrice: query.get("minPrice") || "",
-        maxPrice: query.get("maxPrice") || "",
-      })
-    );
-  }, [query]);
+    const queryParams = {};
+    
+    if (searchQuery.name) queryParams.name = searchQuery.name;
+    if (searchQuery.minPrice) queryParams.minPrice = searchQuery.minPrice;
+    if (searchQuery.maxPrice) queryParams.maxPrice = searchQuery.maxPrice;
+
+    dispatch(getProductList(queryParams));
+  }, [searchQuery, dispatch]);
 
  
   return (
