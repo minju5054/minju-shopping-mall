@@ -14,7 +14,7 @@ const LandingPage = () => {
 
   // URL에서 불필요한 쿼리 제거 
   useEffect(() => {
-    if (query.has("name") || query.has("minPrice") || query.has("maxPrice")) {
+    if (![...query.keys()].length) {
       setQuery({}, {replace: true});
     }
   }, []);
