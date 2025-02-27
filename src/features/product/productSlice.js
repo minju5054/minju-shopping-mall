@@ -8,11 +8,6 @@ export const getProductList = createAsyncThunk(
   "products/getProductList",
   async (query, { rejectWithValue }) => {
     try{
-      // const {name, minPrice, maxPrice} = query;
-      // let params = {name};
-
-      // if (minPrice) params.minPrice = minPrice;
-      // if (maxPrice) params.maxPrice = maxPrice;
 
       const response = await api.get("/product", {params:{...query}});
       console.log("rrr", response);

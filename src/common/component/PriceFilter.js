@@ -5,7 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import { update } from "@react-spring/web";
 
 const PriceFilter = ({ searchQuery, setSearchQuery }) => {
-    const [query] = useSearchParams();
+    const [query, setQuery] = useSearchParams();
     const [minPrice, setMinPrice] = useState(query.get("minPrice") || "");
     const [maxPrice, setMaxPrice] = useState(query.get("maxPrice") || "");
 
@@ -34,6 +34,7 @@ const PriceFilter = ({ searchQuery, setSearchQuery }) => {
         }
 
         setSearchQuery(updatedQuery);
+        setQuery(updatedQuery);  // URL 업데이트 
     };
 
     return (

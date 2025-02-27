@@ -11,31 +11,30 @@ const LandingPage = () => {
   const dispatch = useDispatch();
   const productList = useSelector((state) => state.product.productList);
   const [query, setQuery] = useSearchParams();
-  const name = query.get("name");
 
+  // URL에서 불필요한 쿼리 제거 
+  useEffect(() => {
+    if (query.has("name") || query.has("minPrice") || query.has("maxPrice")) {
+      setQuery({}, {replace: true});
+    }
+  }, []);
+
+  // 이벤트 팝업 상태 관리 
   const [showDiscountPopup, setShowDiscountPopup] = useState(true);
   const [showFWPopup, setshowFWPopup] = useState(true);
 
-  useEffect(() => {
-    dispatch(
-      getProductList({
-        name,
-      })
-    );
-  }, [query]);
-  
-  // 검색 쿼리 상태 추가
-  const [searchQuery, setSearchQuery] = useState({
-    name: query.get("name") || "",
-    minPrice: query.get("minPrice") || "",
-    maxPrice: query.get("maxPrice") || "",
-  });
-  
-  
-  useEffect(() => {
-    setQuery(searchQuery);
-  }, [searchQuery]);
+  // 검색 및 필터링 상태 관리 
+  const [searchQuery, setSearchQuery] = useState({});
 
+  useEffect(() => {
+    setSearchQuery({
+      name: query.get("name") || "",
+      minPrice: query.get("minPrice") || "",
+      maxPrice: query.get("maxPrice") || "",
+    });
+  }, [query]);
+
+  // 상품 리스트 불러오기 
   useEffect(() => {
     dispatch(
       getProductList({
@@ -64,7 +63,7 @@ const LandingPage = () => {
             {searchQuery.name === "" ? (
               <h2>등록된 상품이 없습니다!</h2>
             ) : (
-              <h2>{searchQuery.name}과 일치한 상품이 없습니다!`</h2>
+              <h2>{searchQuery.name}과 일치한 상품이 없습니다!</h2>
             )}
           </div>
         )}
